@@ -2,6 +2,30 @@
 
 Cada decisión con su razón, su coste y la alternativa descartada. El README las resume.
 
+## Integración del catálogo: Dormand-Prince 5(4) con paso adaptativo
+
+- **Qué:** las seis órbitas se integran con Dormand-Prince 5(4) y control del error en cada paso (`rtol` 1e-10, `atol` 1e-12), el mismo esquema que `RK45` de SciPy.
+- **Razón:** Butterfly I, Goggles y Yin-Yang I tienen acercamientos muy estrechos entre cuerpos. Con paso fijo haría falta un paso diminuto durante todo el periodo: con `dt = 1e-3` la energía se dispara y con `dt = 2.5e-4` Butterfly I aún pierde un 0.6 % (medido el 27/10/2026). El paso adaptativo solo se reduce en esos acercamientos: un periodo con 2000 muestras se calcula en 25 a 118 ms y la energía se conserva con un error relativo de 1e-8 o menos. Los autores de las condiciones iniciales usaron un método de la misma familia (Runge-Kutta-Fehlberg 4(5)).
+- **Coste:** no es simpléctico, así que en simulaciones muy largas la energía derivaría; aquí solo se integra un periodo.
+- **Alternativa descartada:** RK4 o Yoshida con paso fijo.
+
+## Yoshida de cuarto orden para las simulaciones en vivo
+
+- **Razón:** es simpléctico: su error de energía oscila sin acumularse, que es lo que necesita una simulación que corre sin fin. En la figura de ocho, durante 100 periodos con `dt = 0.01`, el error máximo es 2e-8 con Yoshida y 2.6e-7 con RK4, que además va creciendo. Yoshida hace 3 evaluaciones de fuerza por paso y RK4, 4.
+- **Alternativa descartada:** RK4, que se midió en las mismas condiciones y se retiró del código.
+
+## Condiciones iniciales y periodos
+
+- **Fuentes:** Butterfly I, Goggles, Moth I y Yin-Yang I salen de Šuvakov y Dmitrašinović, Phys. Rev. Lett. 110, 114301 (2013), tabla I (para Yin-Yang I, la fila II.C.2a). La figura de ocho, de Šuvakov, arXiv:1312.7002, tabla I (órbita M8 de Moore, con 16 decimales). Lagrange se deriva a mano: triángulo equilátero de radio 1 que gira con v = 3^(-1/4).
+- **Dos periodos:** las tablas dan el periodo con cuatro decimales, y no coincide del todo con el instante en que la órbita vuelve a su estado inicial: en la figura de ocho, la tabla dice 6.3250 y la órbita se cierra en 6.325897. El catálogo guarda los dos. La animación usa el medido para que el bucle no dé un salto, y los tests comprueban que el sistema vuelve a su estado inicial en ese instante y que no se aleja más de 2e-3 del publicado.
+- **Contraste independiente:** Chenciner y Montgomery (Annals of Mathematics 152, 2000, figura 1) publican las condiciones de Simó para la figura de ocho con T = 6.32591398; integradas con este motor, se cierran en 6.32591401. La diferencia con el 6.325897 de las condiciones de Šuvakov viene de su energía, 1.9e-6 distinta en términos relativos: como el periodo escala con |E|^(-3/2), eso predice 1.8e-5 de diferencia, y se miden 1.7e-5.
+- **Verificación:** la distancia en el espacio de fases al volver (la "proximidad de retorno" de los autores) queda por debajo de 1e-9 en Lagrange y entre 8e-7 y 2.3e-4 en el resto, según los decimales publicados. La energía se conserva en todas.
+
+## Precalcular un periodo y repetirlo
+
+- **Razón:** varias de estas órbitas son inestables, también la de Lagrange: en una simulación viva, el error numérico acaba deshaciéndolas. Precalcular un periodo da una reproducción estable y hace triviales la velocidad y la barra de posición.
+- **Coste:** no es una simulación infinita; se explica en los límites del README.
+
 ## Cache Components activado
 
 - **Qué:** `cacheComponents: true` en `next.config.ts`, el valor por defecto de create-next-app 16.4.3.
