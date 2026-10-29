@@ -92,7 +92,8 @@ Cada decisión con su razón, su coste y la alternativa descartada. El README la
 
 - **Qué:** el panel del tutor de `/aprende` llama a `POST /api/tutor`, que valida la conversación, llama a Claude Haiku 5.5 (`claude-haiku-5-5`, cambiable con `TUTOR_MODEL`) con el AI SDK y su proveedor de Anthropic, y devuelve la respuesta en streaming. Esfuerzo bajo y como mucho 2048 tokens de salida.
 - **Razón:** el AI SDK trae `useChat` (streaming, estado de la conversación y herramientas que se ejecutan en el navegador) y el protocolo entre cliente y servidor, que con el SDK oficial de Anthropic habría que escribir a mano. Haiku 5.5 es el modelo rápido y barato de la familia actual: 0,10 $ por millón de tokens de entrada y 0,50 $ por millón de salida en prompts de hasta 100 000 tokens. El esfuerzo bajo es el nivel pensado para conversación y adelanta el principio de la respuesta.
-- **Coste:** una capa más entre el código y la API: las novedades de Anthropic llegan al AI SDK con retraso y algún comportamiento depende de él (ver "Reenvío automático tras una herramienta"). Haiku razona menos que Sonnet u Opus; para explicar la ley de Newton a un adulto debería bastar, y se comprueba con llamadas reales.
+- **Coste:** una capa más entre el código y la API: las novedades de Anthropic llegan al AI SDK con retraso y algún comportamiento depende de él (ver "Reenvío automático tras una herramienta"). Haiku razona menos que Sonnet u Opus.
+- **Medido con 13 llamadas reales** en local el 29/10/2026, desde el panel. Las respuestas salieron en español, breves, en texto plano y adaptadas al nivel: sin fórmulas en el inicial, con la energía en el avanzado. Usaron bien las tres herramientas, corrigieron una pregunta fallada y rechazaron lo que no era del tema y un intento de saltarse las reglas. Hubo un dato inventado: que al 140 % el planeta ya escapaba, cuando la página dice que aún orbita. Se corrigió dando al modelo los umbrales del lanzador que calcula la página, con un test que los compara, y la misma pregunta salió bien. Cada llamada leyó de 2312 a 3663 tokens, 2025 de ellos de la caché desde la segunda de cada sesión, y escribió de 89 a 1084. En total, unos 0,004 $, con respuestas completas en 1,4 a 6,8 s.
 - **Alternativa descartada:** `@anthropic-ai/sdk`, con el bucle de herramientas y el streaming hacia el navegador escritos a mano.
 
 ## Herramientas que operan la página
@@ -136,7 +137,7 @@ Cada decisión con su razón, su coste y la alternativa descartada. El README la
 
 - **Qué:** los tests unitarios usan el modelo simulado del AI SDK (`MockLanguageModelV4`) y comprueban qué recibe. Los de navegador arrancan el servidor con `ANTHROPIC_API_KEY` vacía y, donde hace falta el modelo, es el propio navegador quien contesta a `/api/tutor` con respuestas escritas en el formato del AI SDK.
 - **Razón:** ninguna pasada gasta cuota ni depende de la red. Una variable ya definida, aunque esté vacía, no la sobrescribe `.env.local`: comprobado en el código de `@next/env`.
-- **Coste:** las respuestas grabadas están escritas a mano; si el AI SDK cambia su formato, hay que actualizarlas. Lo que hace el modelo de verdad se comprueba aparte, con llamadas reales contadas.
+- **Coste:** las respuestas grabadas están escritas a mano; si el AI SDK cambia su formato, hay que actualizarlas. Lo que hace el modelo de verdad se comprueba aparte, con llamadas reales contadas (13 el 29/10/2026: ver "Tutor: Claude Haiku 5.5 con el AI SDK").
 
 ## Instrucciones del tutor en español
 
