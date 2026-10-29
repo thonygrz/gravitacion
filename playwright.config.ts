@@ -46,6 +46,9 @@ export default defineConfig({
     {
       name: "webkit-430-iphone",
       use: { ...devices["iPhone 15 Pro Max"] },
+      // On Windows this WebKit has an orbit ready in 1.1 to 2 s (desktop Chrome, in 0.3 to 0.4),
+      // and under the load of a run it once took over the default 5 s (measured on 29/10/2026).
+      expect: { timeout: 15_000 },
     },
   ],
   webServer: {
