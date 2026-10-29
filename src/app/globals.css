@@ -1,1 +1,44 @@
 @import "tailwindcss";
+
+/* Dark palette; the contrast of each pair is measured in docs/decisiones.md. */
+@theme {
+  --color-night: #060912;
+  --color-panel: #0d1322;
+  --color-line: #222c45;
+  --color-ink: #e8edf7;
+  --color-muted: #a3aec6;
+  --color-accent: #f5b83d;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-night);
+    background-image: radial-gradient(ellipse 80% 50% at 50% -10%, #16203d 0%, transparent 70%);
+    background-repeat: no-repeat;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
