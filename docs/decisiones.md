@@ -84,13 +84,69 @@ Cada decisión con su razón, su coste y la alternativa descartada. El README la
 
 ## Estado compartido de la página Aprende
 
-- **Qué:** las masas, la distancia, la velocidad de lanzamiento y las primeras respuestas viven en un proveedor de la página, no dentro de cada componente. Los valores que llegan de fuera se acotan a los mismos límites que los deslizadores, y el nivel (inicial, intermedio o avanzado) sale de la primera respuesta a cada pregunta.
+- **Qué:** las masas, la distancia, la velocidad de lanzamiento y las primeras respuestas viven en un proveedor de la página, no dentro de cada componente. Todo valor se ajusta a los límites y a los pasos de su deslizador, también los que llegan del tutor (un 3,3 de distancia queda en 3,5), y el nivel (inicial, intermedio o avanzado) sale de la primera respuesta a cada pregunta.
 - **Razón:** el tutor tiene que poder leer ese estado y moverlo (las herramientas que operan la aplicación), y el nivel tiene que viajar con cada mensaje.
 - **Coste:** un contexto más; cualquier cambio vuelve a pintar los dos laboratorios, que son pequeños.
 
+## Tutor: Claude Haiku 5.5 con el AI SDK
+
+- **Qué:** el panel del tutor de `/aprende` llama a `POST /api/tutor`, que valida la conversación, llama a Claude Haiku 5.5 (`claude-haiku-5-5`, cambiable con `TUTOR_MODEL`) con el AI SDK y su proveedor de Anthropic, y devuelve la respuesta en streaming. Esfuerzo bajo y como mucho 2048 tokens de salida.
+- **Razón:** el AI SDK trae `useChat` (streaming, estado de la conversación y herramientas que se ejecutan en el navegador) y el protocolo entre cliente y servidor, que con el SDK oficial de Anthropic habría que escribir a mano. Haiku 5.5 es el modelo rápido y barato de la familia actual: 0,10 $ por millón de tokens de entrada y 0,50 $ por millón de salida en prompts de hasta 100 000 tokens. El esfuerzo bajo es el nivel pensado para conversación y adelanta el principio de la respuesta.
+- **Coste:** una capa más entre el código y la API: las novedades de Anthropic llegan al AI SDK con retraso y algún comportamiento depende de él (ver "Reenvío automático tras una herramienta"). Haiku razona menos que Sonnet u Opus; para explicar la ley de Newton a un adulto debería bastar, y se comprueba con llamadas reales.
+- **Alternativa descartada:** `@anthropic-ai/sdk`, con el bucle de herramientas y el streaming hacia el navegador escritos a mano.
+
+## Herramientas que operan la página
+
+- **Qué:** tres herramientas sin `execute` en el servidor: `setLab` (masas y distancia del laboratorio), `setLaunchSpeed` (velocidad del lanzador) y `showOrbit` (enlace a una órbita de la galería). El navegador las ejecuta sobre el mismo estado que mueven los deslizadores y devuelve al modelo los valores aplicados y lo que calcula la página: la fuerza antes y después, o si el planeta choca, orbita o escapa.
+- **Razón:** el modelo enseña en la página en lugar de solo contarlo, y explica con los números de la física de la página en vez de inventarlos.
+- **Coste:** cada herramienta es una vuelta más al servidor y otra llamada al modelo. El panel deja de reenviar tras 4 llamadas seguidas y el servidor rechaza una quinta sin un mensaje del usuario entre medias.
+
+## Conversación de solo añadir
+
+- **Qué:** las instrucciones y las herramientas son idénticas en todas las peticiones. Lo que cambia (respuestas a las preguntas, laboratorio y lanzador) viaja como metadatos del mensaje del usuario en el que se escribió, y el servidor lo pone en un mensaje de sistema justo después de ese mensaje. Cada petición repite las anteriores tal cual y solo añade al final; un test lo comprueba con el modelo simulado.
+- **Razón:** con Claude Haiku 5.5, reenviar un bloque de pensamiento después de cambiar el `system`, las herramientas o mensajes anteriores devuelve un 400 (por defecto, en las cuentas creadas desde el 31/08/2026). Unas instrucciones fijas, además, se pueden cachear.
+- **Coste:** el modelo ve la página como estaba al escribir cada mensaje, no como está ahora; cuando una herramienta cambia algo, su resultado trae los valores nuevos.
+- **Alternativa descartada:** el estado actual dentro del `system`, que cambiaría en cada mensaje.
+
+## Nivel del usuario
+
+- **Qué:** el servidor calcula el nivel a partir de la primera respuesta a cada pregunta de comprobación y se lo da al modelo con cada mensaje, junto con qué preguntas acertó y cuáles falló. Tras un fallo, un botón le manda al tutor la pregunta y la respuesta elegida.
+- **Razón:** adaptarse a lo que el usuario demuestra saber (una de las mejoras que propone el enunciado) con un dato que el usuario da sin esfuerzo, y corregir justo donde se equivocó.
+- **Coste:** cuatro preguntas son poca señal; las instrucciones piden adaptarse también a lo que el usuario muestra en la conversación.
+
+## Validación y límites de `/api/tutor`
+
+- **Qué:** se valida todo lo que llega del navegador: el cuerpo tiene que ser JSON (si no, 415); los mensajes, con el esquema de la UI del AI SDK; los metadatos, con zod y dentro de los límites de los deslizadores; las salidas de las herramientas, con su esquema. Además, ningún mensaje de sistema del cliente, como mucho 40 mensajes, 600 caracteres por mensaje del usuario y 4 llamadas a herramientas seguidas. La clave solo se lee en el servidor, en cada petición, y `GET /api/tutor` dice si la hay.
+- **Razón:** la URL es pública y cada petición gasta del presupuesto. Los límites acotan lo que una petición puede hacer leer al modelo. Exigir JSON obliga al navegador a preguntar antes (preflight) cuando la petición viene de otra web, y la ruta no contesta a esa pregunta, así que otras webs no pueden gastar el presupuesto del tutor.
+- **Coste:** una conversación muy larga hay que empezarla de nuevo; el panel lo dice.
+- **El tope de verdad** es el límite de gasto del espacio de trabajo en la consola de Anthropic. Si se alcanza, el tutor lo dice y las preguntas se siguen corrigiendo con su explicación fija.
+
+## Reenvío automático tras una herramienta
+
+- **Qué:** tras ejecutar una herramienta, el panel reenvía la conversación solo si el último mensaje ha cambiado desde el reenvío anterior.
+- **Razón:** medido al sacar capturas el 29/10/2026. El cliente del AI SDK no publica un paso que llega vacío, de modo que tras una herramienta y una respuesta sin contenido la conversación parecía igual y se reenviaba sin fin: 22 peticiones en 3 segundos, cada una de ellas una llamada de pago con el modelo real. Con el servidor real el paso sí se publica, porque el final de la respuesta lleva los tokens usados, pero eso depende de un detalle interno; la comprobación propia no. Un test de navegador lo fija.
+- **Coste:** ninguno visible: tras una respuesta vacía, la conversación espera al usuario.
+
+## Modo reducido sin clave
+
+- **Qué:** sin `ANTHROPIC_API_KEY`, `GET /api/tutor` dice que no hay tutor; el panel lo avisa antes de que nadie escriba y no muestra el formulario. Las preguntas de comprobación siguen corrigiéndose con su explicación fija, sin el botón al tutor.
+- **Razón:** la web funciona entera sin clave, y nadie escribe una pregunta para descubrir después que no hay quien la conteste.
+
+## Tests del tutor sin llamadas al modelo
+
+- **Qué:** los tests unitarios usan el modelo simulado del AI SDK (`MockLanguageModelV4`) y comprueban qué recibe. Los de navegador arrancan el servidor con `ANTHROPIC_API_KEY` vacía y, donde hace falta el modelo, es el propio navegador quien contesta a `/api/tutor` con respuestas escritas en el formato del AI SDK.
+- **Razón:** ninguna pasada gasta cuota ni depende de la red. Una variable ya definida, aunque esté vacía, no la sobrescribe `.env.local`: comprobado en el código de `@next/env`.
+- **Coste:** las respuestas grabadas están escritas a mano; si el AI SDK cambia su formato, hay que actualizarlas. Lo que hace el modelo de verdad se comprueba aparte, con llamadas reales contadas.
+
+## Instrucciones del tutor en español
+
+- **Qué:** el prompt del modelo está en español, como la interfaz.
+- **Razón:** es texto del producto, lo leen el modelo y quien revise el código, y fija el idioma de las respuestas.
+- **Coste:** se aparta de la convención de escribir el código en inglés; los nombres y los comentarios siguen en inglés.
+
 ## Tests de navegador con Playwright
 
-- **Qué:** Playwright 1.64.1 con el Chrome instalado a 1280, 768 y 375 px (este último táctil) y con el Firefox de Playwright a 1280. Cubren la galería (direcciones, orden, estado al volver por enlace, con el navegador y tras varias órbitas, entrada directa y 404), el reproductor (arranque, teclado y movimiento reducido) y la maqueta (sin scroll horizontal, `lang` y enlace de salto). Sirven el build de producción en el puerto 3100.
+- **Qué:** Playwright 1.64.1 con el Chrome instalado a 1280, 768 y 375 px (este último táctil) y con el Firefox de Playwright a 1280. Cubren la galería (direcciones, orden, estado al volver por enlace, con el navegador y tras varias órbitas, entrada directa y 404), el reproductor (arranque, teclado y movimiento reducido), las lecciones (laboratorio, preguntas y lanzador), el tutor (modo reducido, herramientas, reenvío y errores) y la maqueta (sin scroll horizontal, `lang` y enlace de salto). Sirven el build de producción en el puerto 3100.
 - **Razón:** el estado al volver y el teclado solo se comprueban en un navegador real. Las consultas usan `getByRole`, que ignora las páginas que Activity deja ocultas. Cada test nuevo se ha visto fallar con una mutación del código que protege.
 - **Coste:** una dependencia de desarrollo y unos 2 minutos por pasada completa. El Firefox de Playwright se atasca a veces en Windows al cerrar un contexto cuando el test ya ha terminado ("can't access property _maybeDontRestoreTabs"), y más con varios contextos a la vez; aislado, doce recorridos de la galería al detalle muestran el título en 108 a 336 ms. Por eso la pasada usa dos workers (con cuatro, los navegadores, sus workers de órbitas y el servidor compiten por la CPU), Firefox corre un test cada vez y reintenta una vez, y el informe marca como inestable lo que pase al reintentar. Medido el 28/10/2026: dos pasadas seguidas, 80 de 80. Cada pasada construye y sirve el código tal como está: un servidor que ya escuche en el puerto no se reutiliza, porque el 29/10/2026 uno olvidado sirvió un build anterior y dio por buenos tests y mutaciones que no lo eran.
 - **Alternativa descartada:** pruebas manuales en cada cambio, y el Firefox instalado, que Playwright no puede controlar: solo maneja su propia compilación.
