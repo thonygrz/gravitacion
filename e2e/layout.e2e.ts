@@ -22,11 +22,19 @@ for (const path of PAGES) {
   });
 }
 
-test("is in Spanish and starts with a link that skips to the content", async ({ page }) => {
+test("is in Spanish and starts with a link that skips to the content", async ({ page, browserName }) => {
   await page.goto("/galeria");
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
-  await page.keyboard.press("Tab");
   const skip = page.getByRole("link", { name: "Saltar al contenido" });
+  if (browserName === "webkit") {
+    // In WebKit, Tab skips links and goes to the first button, and so does Alt+Tab (measured
+    // on 29/10/2026). The link is focused directly once it is the first focusable element.
+    const firstFocusable = page.locator("a[href], button, input, select, textarea, [tabindex]:not([tabindex='-1'])").first();
+    await expect(firstFocusable).toHaveText("Saltar al contenido");
+    await skip.focus();
+  } else {
+    await page.keyboard.press("Tab");
+  }
   await expect(skip).toBeFocused();
   await expect(skip).toHaveAttribute("href", "#contenido");
   // Focusable from the link but kept out of the tab order. Following the link itself is

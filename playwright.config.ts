@@ -41,6 +41,12 @@ export default defineConfig({
       workers: 1,
       retries: 1,
     },
+    // Playwright's WebKit build (`npx playwright install webkit`), the engine of Safari, with
+    // the profile of an iPhone 15 Pro Max held upright: 430 px wide, touch and a mobile viewport.
+    {
+      name: "webkit-430-iphone",
+      use: { ...devices["iPhone 15 Pro Max"] },
+    },
   ],
   webServer: {
     // The production build of the code as it is now, which is what gets deployed. A
