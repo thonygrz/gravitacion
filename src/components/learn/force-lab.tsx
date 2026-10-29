@@ -3,9 +3,10 @@
 import { useId } from "react";
 import { formatNumber } from "@/lib/format";
 import { forceChange, type ForceChange } from "@/lib/learn/force";
+import { LAB_LIMITS, LAB_START } from "@/lib/learn/lab";
 import { gravitationalForce } from "@/lib/physics/gravity";
 import { bodyColor } from "../orbit-colors";
-import { LAB_LIMITS, LAB_START, useLearn } from "./learn-state";
+import { useLearn } from "./learn-state";
 
 // The drawing is 640 × 200; at the largest distance the bodies sit 260 units from the centre.
 const WIDTH = 640;

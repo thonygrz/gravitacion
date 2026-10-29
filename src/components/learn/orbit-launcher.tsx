@@ -2,16 +2,16 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { formatNumber } from "@/lib/format";
+import { LAUNCH_LIMITS, outcomeOfLaunch, STAR_RADIUS } from "@/lib/learn/lab";
 import type { Body } from "@/lib/physics/body";
 import { yoshida4 } from "@/lib/physics/integrators";
-import { circularSpeed, launchOutcome, type LaunchOutcome } from "@/lib/physics/launch";
+import { circularSpeed, type LaunchOutcome } from "@/lib/physics/launch";
 import { length, sub, vec2, type Vec2 } from "@/lib/physics/vector";
 import { bodyColor } from "../orbit-colors";
-import { LAUNCH_LIMITS, useLearn } from "./learn-state";
+import { useLearn } from "./learn-state";
 
 // A star of mass 1 at the origin and a planet launched from distance 1, so the
 // circular speed and the circular period are 1 and 2π.
-const STAR_RADIUS = 0.15;
 const LAUNCH_POINT = vec2(1, 0);
 // Yoshida's step: at the closest approach the slider allows, about 0.15, it still
 // covers less than 3° of the turn.
@@ -70,7 +70,7 @@ interface View {
 export function OrbitLauncher() {
   const { launchSpeed, setLaunchSpeed } = useLearn();
   const sliderId = useId();
-  const outcome = launchOutcome({ starMass: 1, radius: 1, speed: launchSpeed }, STAR_RADIUS);
+  const outcome = outcomeOfLaunch(launchSpeed);
   const [view, setView] = useState<View | null>(null);
   const [playing, setPlaying] = useState(false);
   const bodiesRef = useRef<Body[]>([]);
