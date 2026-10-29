@@ -37,8 +37,8 @@ En local van en `.env.local`, que no se sube al repositorio (la plantilla es `.e
 
 ## Tests
 
-- **`npm test`:** Vitest, 120 tests. Cubren la física (gravedad, integradores, cierre de cada órbita frente a su periodo publicado), el trazado de las órbitas, el lanzador y el tutor. El tutor se prueba con el modelo simulado del AI SDK, que permite comprobar qué recibe el modelo y que cada petición repite la anterior sin cambiarla.
-- **`npm run test:e2e`:** Playwright, 160 tests, en el Chrome instalado a 1280, 768 y 375 px (táctil), en el Firefox de Playwright a 1280 y en su WebKit, el motor de Safari, con el perfil de un iPhone 15 Pro Max. Construye y sirve el build de producción en el puerto 3100 sin clave del modelo; donde un test necesita el tutor, el propio navegador contesta con respuestas grabadas. La primera vez hay que instalar esos dos navegadores con `npx playwright install firefox webkit`.
+- **`npm test`:** Vitest, 121 tests. Cubren la física (gravedad, integradores, cierre de cada órbita frente a su periodo publicado), el trazado de las órbitas, el lanzador y el tutor. El tutor se prueba con el modelo simulado del AI SDK, que permite comprobar qué recibe el modelo y que cada petición repite la anterior sin cambiarla.
+- **`npm run test:e2e`:** Playwright, 165 tests, en el Chrome instalado a 1280, 768 y 375 px (táctil), en el Firefox de Playwright a 1280 y en su WebKit, el motor de Safari, con el perfil de un iPhone 15 Pro Max. Construye y sirve el build de producción en el puerto 3100 sin clave del modelo; donde un test necesita el tutor, el propio navegador contesta con respuestas grabadas. La primera vez hay que instalar esos dos navegadores con `npx playwright install firefox webkit`.
 - **`npm run typecheck`** y **`npm run lint`**.
 
 Ningún test llama al modelo. Cada test nuevo lo he visto fallar con una mutación del código que protege.
@@ -85,6 +85,7 @@ El detalle de cada una, con su razón, su coste y la alternativa descartada, est
 - El contraste está medido con la fórmula de WCAG: el texto, 16,95:1 sobre el fondo.
 - Con `prefers-reduced-motion` la órbita espera en pausa y el lanzador dibuja el camino entero de una vez.
 - Probado a 375, 768 y 1280 px y con el perfil de un iPhone 15 Pro Max, sin scroll horizontal.
+- Probado también a mano en un iPhone 15 Pro Max con Safari.
 
 ## Límites
 
@@ -92,7 +93,6 @@ El detalle de cada una, con su razón, su coste y la alternativa descartada, est
 - El estado de la galería y de `/aprende` se pierde al recargar la página, como permite el enunciado.
 - Las conversaciones con el tutor no se guardan. Si se agota el presupuesto del mes, el tutor lo dice y las preguntas se siguen corrigiendo con su explicación fija.
 - No está la mejora de buscar órbitas propias.
-- No he probado la web en un móvil real: solo emulando uno, en Chrome a 375 px y en WebKit con el perfil de un iPhone 15 Pro Max.
 - No hay imagen de Docker: la entrega es el repositorio y la web desplegada.
 
 ## Cómo he usado la IA
