@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const PAGES = [
   "/",
+  "/aprende",
   "/galeria",
   "/galeria/lagrange",
   "/galeria/figura-de-ocho",
