@@ -43,11 +43,12 @@ export default defineConfig({
     },
   ],
   webServer: {
-    // The production build, which is what gets deployed. An already running server on
-    // the port is reused, which saves the build while iterating.
+    // The production build of the code as it is now, which is what gets deployed. A
+    // server already on the port is never reused: it could be serving an older build
+    // (it happened on 28/10/2026), so a busy port fails the run instead.
     command: `npm run build && npm run start -- --port ${PORT}`,
     url: `http://localhost:${PORT}`,
-    reuseExistingServer: true,
+    reuseExistingServer: false,
     timeout: 300_000,
   },
 });
