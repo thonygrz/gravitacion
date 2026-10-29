@@ -135,6 +135,7 @@ export function OrbitPlayer({ slug, name, period, viewBox, children }: OrbitPlay
   }, [trajectory, trailBuffer, viewBox, size, time, trails]);
 
   const position = Math.round((time / period) * POSITION_STEPS);
+  const periodReading = formatNumber(period, 2, 2);
 
   return (
     <div className="rounded-2xl border border-line bg-panel/70 p-3 sm:p-4">
@@ -234,8 +235,16 @@ export function OrbitPlayer({ slug, name, period, viewBox, children }: OrbitPlay
             aria-valuetext={`Tiempo ${formatNumber(time, 2)} de ${formatNumber(period, 2)}`}
             className="min-w-40 flex-1 accent-accent"
           />
-          <span aria-hidden="true" className="text-sm tabular-nums text-muted">
-            {formatNumber(time, 2)} / {formatNumber(period, 2)}
+          {/* Always two decimals, laid over an invisible copy of the longest reading (the time never
+              has more digits than the period): the reading keeps its width while the time runs, and
+              so does the slider beside it. */}
+          <span aria-hidden="true" className="grid text-sm tabular-nums text-muted">
+            <span className="invisible col-start-1 row-start-1">
+              {periodReading} / {periodReading}
+            </span>
+            <span className="col-start-1 row-start-1 text-right">
+              {formatNumber(time, 2, 2)} / {periodReading}
+            </span>
           </span>
         </div>
 

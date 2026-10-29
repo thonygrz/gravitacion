@@ -1,6 +1,12 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 const position = (page: Page) => page.getByRole("slider", { name: "Posición en el periodo" });
+
+const widthOf = async (locator: Locator) => {
+  const box = await locator.boundingBox();
+  if (!box) throw new Error("the element is not on screen");
+  return box.width;
+};
 
 test.describe("orbit player", () => {
   test.beforeEach(async ({ page }) => {
@@ -50,6 +56,26 @@ test.describe("orbit player", () => {
     await page.getByRole("button", { name: "Reiniciar" }).click();
     await expect(slider).toHaveValue("0");
   });
+});
+
+test("keeps the time reading and the slider the same width as the time runs", async ({ page }) => {
+  // Goggles' period has two whole digits, so the reading goes from 0,00 to 10,46.
+  await page.goto("/galeria/goggles");
+  await page.getByRole("button", { name: "Pausar" }).click();
+  const slider = position(page);
+  await slider.focus();
+  await page.keyboard.press("Home");
+  await expect(slider).toHaveValue("0");
+  const readingAtStart = page.getByText("0,00 / 10,46", { exact: true });
+  await expect(readingAtStart).toBeVisible();
+  const sliderAtStart = await widthOf(slider);
+  const readingWidth = await widthOf(readingAtStart);
+  await page.keyboard.press("End");
+  await expect(slider).toHaveValue("200");
+  // On a narrow screen the reading wraps below the slider, so its own width is checked too.
+  expect(await widthOf(slider)).toBeCloseTo(sliderAtStart, 0);
+  const readingAtEnd = page.getByText("10,46 / 10,46", { exact: true }).filter({ visible: true });
+  expect(await widthOf(readingAtEnd)).toBeCloseTo(readingWidth, 0);
 });
 
 test.describe("with reduced motion", () => {
