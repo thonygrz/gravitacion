@@ -68,11 +68,31 @@ Cada decisión con su razón, su coste y la alternativa descartada. El README la
 - **Razón:** contraste medido con la fórmula de WCAG 2.x: texto 16,95:1, secundario 8,93:1 (8,32:1 sobre las tarjetas), acento 11,18:1 y texto sobre el acento 11,18:1. Los cuerpos, 8,83, 8,62 y 5,82:1 sobre el fondo, con tonos muy separados entre sí.
 - **Coste:** los bordes de las tarjetas son decorativos (1,34:1): cada tarjeta se identifica por su título y el foco se marca con el acento.
 
+## Parte A: cuatro lecciones cortas con dos laboratorios
+
+- **Qué:** `/aprende` explica la ley en cuatro pasos (todo atrae a todo, la fórmula, las órbitas y el paso a tres cuerpos), con un laboratorio de fuerza, un lanzador de planetas y cuatro preguntas de comprobación con su explicación.
+- **Razón:** para un adulto sin formación en física, lo esencial de la ley son sus proporciones: el doble de masa, el doble de fuerza; el doble de distancia, la cuarta parte. Por eso el laboratorio usa G = 1, escribe la fuerza en unidades de G con los números de cada momento y dice cuánto ha cambiado respecto al valor anterior ("4 veces menor"). El valor real de G aparece en la lección con su fuente (CODATA 2022, publicado por el NIST), y el ejemplo de dos personas de 70 kg a un metro lo calcula el propio código con ese valor.
+- **Coste:** las unidades del laboratorio no son las del mundo real; la lección lo dice.
+- **Alternativa descartada:** unidades del Sistema Internacional en el laboratorio: con masas de 1 a 10 kg y distancias de 1 a 10 m, las fuerzas irían de 7e-13 a 7e-9 N, imposibles de leer y comparar a simple vista.
+
+## Lanzador: el resultado se calcula y el movimiento se simula
+
+- **Qué:** el planeta sale de lado a distancia 1 de una estrella de masa 1. Si choca, orbita o escapa lo dice `launchOutcome` a partir de la energía y del momento angular: escapa con energía no negativa; si no, se mueve en una elipse entre el punto de lanzamiento y el otro ápside, r·v²/(2GM/r − v²), y choca si ese ápside cae dentro de la estrella. El movimiento se integra en vivo con Yoshida, el integrador simpléctico de las simulaciones vivas.
+- **Razón:** el texto del resultado cambia al mover la velocidad, sin esperar a la animación, y los tests lo contrastan con la integración numérica: el acercamiento máximo y el periodo de Kepler coinciden hasta el quinto decimal.
+- **Coste:** la estrella se trata como casi fija (el planeta pesa 1e-9), que es lo que supone la fórmula.
+- **Movimiento reducido:** el lanzamiento se dibuja entero de una vez (una vuelta, o el camino hasta chocar o salir de la vista) en lugar de animarse.
+
+## Estado compartido de la página Aprende
+
+- **Qué:** las masas, la distancia, la velocidad de lanzamiento y las primeras respuestas viven en un proveedor de la página, no dentro de cada componente. Los valores que llegan de fuera se acotan a los mismos límites que los deslizadores, y el nivel (inicial, intermedio o avanzado) sale de la primera respuesta a cada pregunta.
+- **Razón:** el tutor tiene que poder leer ese estado y moverlo (las herramientas que operan la aplicación), y el nivel tiene que viajar con cada mensaje.
+- **Coste:** un contexto más; cualquier cambio vuelve a pintar los dos laboratorios, que son pequeños.
+
 ## Tests de navegador con Playwright
 
 - **Qué:** Playwright 1.64.1 con el Chrome instalado a 1280, 768 y 375 px (este último táctil) y con el Firefox de Playwright a 1280. Cubren la galería (direcciones, orden, estado al volver por enlace, con el navegador y tras varias órbitas, entrada directa y 404), el reproductor (arranque, teclado y movimiento reducido) y la maqueta (sin scroll horizontal, `lang` y enlace de salto). Sirven el build de producción en el puerto 3100.
 - **Razón:** el estado al volver y el teclado solo se comprueban en un navegador real. Las consultas usan `getByRole`, que ignora las páginas que Activity deja ocultas. Cada test nuevo se ha visto fallar con una mutación del código que protege.
-- **Coste:** una dependencia de desarrollo y unos 2 minutos por pasada completa. El Firefox de Playwright se atasca a veces en Windows al cerrar un contexto cuando el test ya ha terminado ("can't access property _maybeDontRestoreTabs"), y más con varios contextos a la vez; aislado, doce recorridos de la galería al detalle muestran el título en 108 a 336 ms. Por eso la pasada usa dos workers (con cuatro, los navegadores, sus workers de órbitas y el servidor compiten por la CPU), Firefox corre un test cada vez y reintenta una vez, y el informe marca como inestable lo que pase al reintentar. Medido el 28/10/2026: dos pasadas seguidas, 80 de 80.
+- **Coste:** una dependencia de desarrollo y unos 2 minutos por pasada completa. El Firefox de Playwright se atasca a veces en Windows al cerrar un contexto cuando el test ya ha terminado ("can't access property _maybeDontRestoreTabs"), y más con varios contextos a la vez; aislado, doce recorridos de la galería al detalle muestran el título en 108 a 336 ms. Por eso la pasada usa dos workers (con cuatro, los navegadores, sus workers de órbitas y el servidor compiten por la CPU), Firefox corre un test cada vez y reintenta una vez, y el informe marca como inestable lo que pase al reintentar. Medido el 28/10/2026: dos pasadas seguidas, 80 de 80. Cada pasada construye y sirve el código tal como está: un servidor que ya escuche en el puerto no se reutiliza, porque el 29/10/2026 uno olvidado sirvió un build anterior y dio por buenos tests y mutaciones que no lo eran.
 - **Alternativa descartada:** pruebas manuales en cada cambio, y el Firefox instalado, que Playwright no puede controlar: solo maneja su propia compilación.
 
 ## Cache Components activado
