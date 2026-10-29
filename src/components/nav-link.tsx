@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 interface NavLinkProps {
-  readonly href: "/" | "/galeria";
+  readonly href: "/aprende" | "/galeria";
   /** Also mark the link as current on the pages below `href`. */
   readonly matchPrefix?: boolean;
   readonly children: ReactNode;

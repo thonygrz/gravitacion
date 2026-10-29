@@ -20,7 +20,7 @@ export function SiteHeader() {
         <nav aria-label="Principal">
           <ul className="flex items-center gap-1 text-sm sm:gap-2">
             <li>
-              <NavLink href="/">Inicio</NavLink>
+              <NavLink href="/aprende">Aprende</NavLink>
             </li>
             <li>
               <NavLink href="/galeria" matchPrefix>
