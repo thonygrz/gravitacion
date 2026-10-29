@@ -61,11 +61,13 @@ test.describe("orbit launcher", () => {
   });
 
   test("launches the planet and stops it on request", async ({ page }) => {
-    await page.getByRole("button", { name: "Lanzar" }).click();
-    const stop = page.getByRole("button", { name: "Parar" });
+    // Exact names: otherwise a name matches as a case-insensitive substring, and where the
+    // tutor is available one of its suggestions ("... al separar los cuerpos?") contains "parar".
+    await page.getByRole("button", { name: "Lanzar", exact: true }).click();
+    const stop = page.getByRole("button", { name: "Parar", exact: true });
     await expect(stop).toBeVisible();
     await stop.click();
-    await expect(page.getByRole("button", { name: "Lanzar" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Lanzar", exact: true })).toBeVisible();
   });
 });
 
@@ -74,8 +76,8 @@ test.describe("with reduced motion", () => {
 
   test("draws the whole launch at once instead of animating it", async ({ page }) => {
     await page.goto("/aprende");
-    await page.getByRole("button", { name: "Lanzar" }).click();
-    await expect(page.getByRole("button", { name: "Lanzar" })).toBeVisible();
+    await page.getByRole("button", { name: "Lanzar", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Lanzar", exact: true })).toBeVisible();
     const points = await page.locator("svg polyline").filter({ visible: true }).getAttribute("points");
     expect(points?.trim().split(" ").length).toBeGreaterThan(1000);
   });
