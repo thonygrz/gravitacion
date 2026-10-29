@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { LAB_START } from "../learn/lab";
+import { formatNumber } from "../format";
+import { LAB_START, outcomeOfLaunch } from "../learn/lab";
 import { ORBITS } from "../orbits/catalog";
 import { runSetLab, runSetLaunchSpeed, runShowOrbit } from "./actions";
-import { labOutputSchema, launchOutputSchema, ORBIT_SLUGS, orbitOutputSchema } from "./tools";
+import { labOutputSchema, launchOutputSchema, ORBIT_SLUGS, orbitOutputSchema, tutorTools } from "./tools";
 
 describe("tool calls", () => {
   it("link exactly the orbits of the gallery", () => {
@@ -26,6 +27,13 @@ describe("tool calls", () => {
     expect(runSetLaunchSpeed({ percent: 500 }).output).toEqual({ percent: 160, outcome: { kind: "escape" } });
     expect(runSetLaunchSpeed({ percent: 10 }).output).toMatchObject({ percent: 20, outcome: { kind: "collision" } });
     expect(launchOutputSchema.safeParse(runSetLaunchSpeed({ percent: 95 }).output).success).toBe(true);
+  });
+
+  it("tell the model the launcher's time unit as the page computes it", () => {
+    const circular = outcomeOfLaunch(1);
+    expect(circular.kind).toBe("orbit");
+    const period = circular.kind === "orbit" ? circular.period : Number.NaN;
+    expect(tutorTools.setLaunchSpeed.description).toContain(`la órbita circular tarda ${formatNumber(period, 1)}.`);
   });
 
   it("name the orbit they link", () => {

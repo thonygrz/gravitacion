@@ -41,7 +41,7 @@ export const tutorTools = {
   }),
   setLaunchSpeed: tool({
     description:
-      "Pone la velocidad del lanzador de la lección 3, en porcentaje de la velocidad de una órbita circular, de 20 a 160 en pasos de 5. Devuelve qué le pasa al planeta: choca con la estrella, se escapa u orbita, y en ese caso a qué distancias mínima y máxima de la estrella y con qué periodo. El usuario lo ve escrito en la página y puede pulsar «Lanzar» para verlo moverse.",
+      "Pone la velocidad del lanzador de la lección 3, en porcentaje de la velocidad de una órbita circular, de 20 a 160 en pasos de 5. Devuelve qué le pasa al planeta: choca con la estrella, se escapa u orbita, y en ese caso a qué distancias mínima y máxima de la estrella y con qué periodo. Las distancias se miden con la del lanzamiento como unidad (el planeta sale a distancia 1) y el periodo, en unidades de tiempo de la página: la órbita circular tarda 6,3. El usuario lo ve escrito en la página y puede pulsar «Lanzar» para verlo moverse.",
     inputSchema: z.object({ percent: z.number().describe("Porcentaje de la velocidad de una órbita circular") }),
     outputSchema: launchOutputSchema,
   }),
