@@ -3,14 +3,25 @@
 import { useId, useState } from "react";
 import { QUESTIONS, type QuestionId } from "@/lib/learn/questions";
 import { useLearn } from "./learn-state";
+import { useTutor } from "./tutor";
 
 export function CheckQuestion({ id }: { readonly id: QuestionId }) {
   const question = QUESTIONS[id];
   const { recordAnswer } = useLearn();
+  const tutor = useTutor();
   const groupName = useId();
   const [choice, setChoice] = useState<number | null>(null);
   const [checked, setChecked] = useState<number | null>(null);
+  const [asked, setAsked] = useState(false);
   const right = checked === question.answer;
+
+  const askTutor = (answer: number) => {
+    tutor.ask(`En la pregunta «${question.prompt}» he contestado «${question.options[answer]}». ¿Por qué no es correcto?`);
+    setAsked(true);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Beside the lessons on wide screens the panel is already in view, and "nearest" leaves it there.
+    document.getElementById("tutor")?.scrollIntoView({ block: "nearest", behavior: reduced ? "auto" : "smooth" });
+  };
 
   return (
     <form
@@ -18,6 +29,7 @@ export function CheckQuestion({ id }: { readonly id: QuestionId }) {
         event.preventDefault();
         if (choice === null) return;
         setChecked(choice);
+        setAsked(false);
         recordAnswer(id, choice === question.answer);
       }}
       className="rounded-2xl border border-line bg-panel/70 p-4 sm:p-5"
@@ -58,6 +70,16 @@ export function CheckQuestion({ id }: { readonly id: QuestionId }) {
           </>
         )}
       </p>
+      {checked !== null && !right && tutor.availability === "available" && (
+        <button
+          type="button"
+          onClick={() => askTutor(checked)}
+          disabled={asked}
+          className="mt-3 rounded-lg border border-line px-4 py-2 text-sm transition-colors hover:border-muted disabled:opacity-50"
+        >
+          {asked ? "Pregunta enviada al tutor" : "Pregúntale al tutor por qué"}
+        </button>
+      )}
     </form>
   );
 }
