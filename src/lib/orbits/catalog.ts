@@ -10,6 +10,8 @@ export interface PeriodicOrbit {
   /** URL segment of the orbit's page. */
   readonly slug: string;
   readonly name: string;
+  /** One or two sentences, for the gallery card and the detail page. */
+  readonly summary: string;
   /**
    * Time after which the published initial conditions come back to themselves,
    * measured with our integrator (see the catalog tests). The animation loops over it.
@@ -58,6 +60,8 @@ export const ORBITS: readonly PeriodicOrbit[] = [
   {
     slug: "lagrange",
     name: "Lagrange",
+    summary:
+      "Los tres cuerpos forman un triángulo equilátero rígido que gira a velocidad constante: cada uno recorre la misma circunferencia.",
     period: (2 * Math.PI) / LAGRANGE_SPEED,
     initialBodies: lagrangeTriangle(),
     source: {
@@ -67,6 +71,8 @@ export const ORBITS: readonly PeriodicOrbit[] = [
   {
     slug: "figura-de-ocho",
     name: "Figura de ocho",
+    summary:
+      "Los tres cuerpos se persiguen por una misma curva con forma de ocho, cada uno un tercio de periodo por detrás del anterior.",
     period: 6.325897,
     publishedPeriod: 6.325,
     initialBodies: fromEulerPoint(0.3471128135672417, 0.532726851767674),
@@ -78,6 +84,8 @@ export const ORBITS: readonly PeriodicOrbit[] = [
   {
     slug: "butterfly-i",
     name: "Butterfly I",
+    summary:
+      "Los cuerpos que empiezan en los extremos trazan bucles a izquierda y derecha, y el del centro va y viene entre ellos con lazos alargados.",
     period: 6.23466,
     publishedPeriod: 6.2356,
     initialBodies: fromEulerPoint(0.30689, 0.12551),
@@ -86,6 +94,8 @@ export const ORBITS: readonly PeriodicOrbit[] = [
   {
     slug: "goggles",
     name: "Goggles",
+    summary:
+      "Dos cuerpos dibujan anillos a cada lado y el tercero cruza una y otra vez por el centro, entre ellos.",
     period: 10.464852,
     publishedPeriod: 10.4668,
     initialBodies: fromEulerPoint(0.0833, 0.12789),
@@ -94,6 +104,8 @@ export const ORBITS: readonly PeriodicOrbit[] = [
   {
     slug: "moth-i",
     name: "Moth I",
+    summary:
+      "Dos cuerpos trazan lazos en esquinas opuestas y el tercero describe grandes bucles alrededor del centro.",
     period: 14.894026,
     publishedPeriod: 14.8939,
     initialBodies: fromEulerPoint(0.46444, 0.39606),
@@ -102,6 +114,8 @@ export const ORBITS: readonly PeriodicOrbit[] = [
   {
     slug: "yin-yang-i",
     name: "Yin-Yang I",
+    summary:
+      "Dos cuerpos giran en mitades opuestas del plano y el tercero las enlaza con lazos que se cruzan en el centro.",
     period: 17.329052,
     publishedPeriod: 17.3284,
     initialBodies: fromEulerPoint(0.51394, 0.30474),
