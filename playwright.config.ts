@@ -45,10 +45,14 @@ export default defineConfig({
   webServer: {
     // The production build of the code as it is now, which is what gets deployed. A
     // server already on the port is never reused: it could be serving an older build
-    // (it happened on 28/10/2026), so a busy port fails the run instead.
+    // (it happened on 29/10/2026), so a busy port fails the run instead.
     command: `npm run build && npm run start -- --port ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: false,
     timeout: 300_000,
+    // No API key, whatever .env.local holds: Next.js never overrides a variable that is
+    // already set, even to an empty string. The tutor stays in its reduced mode, and the
+    // tests that need the model answer for it in the browser.
+    env: { ANTHROPIC_API_KEY: "" },
   },
 });
